@@ -4,12 +4,12 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 
 const authController = {
   register: asyncHandler(async (req: Request, res: Response) => {
-    const { name, email, password, studyTime } = req.body;
+    const { name, email, password, dailyStudyHours } = req.body;
     const { token, user } = await authService.register({
       name,
       email,
       password,
-      dailyStudyHours: Number(studyTime),
+      dailyStudyHours: Number(dailyStudyHours),
     });
     res.status(201).json({
       success: true,

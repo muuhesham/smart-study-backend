@@ -9,7 +9,8 @@ services:
     environment:
       - PORT=8000
       - NODE_ENV=development
-      - DATABASE_URL=mongodb://root:password@mongo:27017/smart_study_db?authSource=admin
+      - DB_URL=mongodb://root:password@mongo:27017/smart_study_db?authSource=admin
+      - JWT_KEY=change_this_to_a_secure_random_string
 
     volumes:
       - .:/app

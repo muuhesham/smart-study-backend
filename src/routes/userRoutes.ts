@@ -8,14 +8,14 @@ import userValidators from "../validations/userValidators.js";
 const router = Router();
 
 router.get(
-  "/profile",
+  "/",
   apiLimiter,
   authMiddleware,
   userController.userProfile,
 );
 
 router.put(
-  "/profile",
+  "/",
   profileLimiter,
   authMiddleware,
   validate(userValidators.updateUsername),
@@ -31,7 +31,7 @@ router.put(
 );
 
 router.delete(
-  "/profile",
+  "/",
   authMiddleware,
   userController.deleteProfile,
 );

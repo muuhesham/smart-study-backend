@@ -4,8 +4,8 @@ import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-router.get("/pomodoro/today", authMiddleware, pomodoroController.getToday);
-router.post("/pomodoro/sessions/:id/complete", authMiddleware, pomodoroController.completeSession);
-router.post("/pomodoro/today/reset", authMiddleware, pomodoroController.resetToday);
+router.get("/today", authMiddleware, pomodoroController.getToday);
+router.post("/sessions/:id/complete", authMiddleware, pomodoroController.completeSession);
+router.post("/today/reset", authMiddleware, pomodoroController.resetToday);
 
 export default router;

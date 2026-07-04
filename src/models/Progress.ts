@@ -11,7 +11,7 @@ export interface IProgress extends Document {
   updatedAt: Date;
 }
 
-const ProgressSchema: Schema = new Schema(
+const ProgressSchema: Schema = new Schema<IProgress>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     subjectId: { type: Schema.Types.ObjectId, ref: 'Subject', required: true },

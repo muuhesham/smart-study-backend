@@ -1,4 +1,5 @@
-import { JwtPayload } from "jsonwebtoken";
+export {};
+
 import * as express from "express";
 
 declare global {
@@ -8,5 +9,13 @@ declare global {
         _id: string;
       };
     }
+  }
+}
+
+declare module "http" {
+  interface IncomingMessage {
+      user?: {
+        _id: string;
+      };
   }
 }

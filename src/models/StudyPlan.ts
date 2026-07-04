@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { studyPlanStatus } from '../constants/enums/studyPlanStatus.js';
 
-export type StudyPlanStatus = 'pending' | 'done';
+export type StudyPlanStatus = typeof studyPlanStatus.PENDING | typeof studyPlanStatus.DONE;
 
 export interface IStudyPlan extends Document {
   userId: Types.ObjectId;
@@ -14,7 +15,7 @@ export interface IStudyPlan extends Document {
   updatedAt: Date;
 }
 
-const StudyPlanSchema: Schema = new Schema(
+const StudyPlanSchema: Schema = new Schema<IStudyPlan>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     subjectId: { type: Schema.Types.ObjectId, ref: 'Subject', required: true },
@@ -22,7 +23,7 @@ const StudyPlanSchema: Schema = new Schema(
     time: { type: String, required: true },
     topic: { type: String, required: true, trim: true },
     durationMinutes: { type: Number, required: true, min: 1 },
-    status: { type: String, enum: ['pending', 'done'], default: 'pending' },
+    status: { type: String, enum: Object.values(studyPlanStatus), default: studyPlanStatus.PENDING },
   },
   { timestamps: true },
 );

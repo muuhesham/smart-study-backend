@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { verifyToken } from "../utils/verifyToken.js";
 import { JWT_KEY } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 
@@ -19,7 +19,7 @@ export const authMiddleware = (
 
   const token = authHeader.split(" ")[1];
   try {
-    const decodedToken = jwt.verify(token!, JWT_KEY!) as unknown as DataToken;
+    const decodedToken = verifyToken(token!, JWT_KEY!) as DataToken;
     req.user = decodedToken;
     next();
   } catch (err) {

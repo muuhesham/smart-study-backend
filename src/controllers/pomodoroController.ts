@@ -1,24 +1,22 @@
 import { Request, Response } from "express";
 import pomodoroService from "../services/pomodoroService.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
+import { sendResponse } from "../utils/sendResponse.js";
 
 const pomodoroController = {
-  // GET /pomodoro/today
   getToday: asyncHandler(async (req: Request, res: Response) => {
     const data = await pomodoroService.getTodaySessions(req.user!._id);
-    res.json({ success: true, data });
+    return sendResponse(res, 200, true, undefined, data);
   }),
 
-  // POST /pomodoro/sessions/:id/complete
   completeSession: asyncHandler(async (req: Request, res: Response) => {
-    const session = await pomodoroService.completeSession(req.user!._id, req.params.id!);
-    res.json({ success: true, data: session });
+    const session = await pomodoroService.completeSession(req.user!._id, req.params.id! as string);
+    return sendResponse(res, 200, true, undefined, session);
   }),
 
-  // POST /pomodoro/today/reset
   resetToday: asyncHandler(async (req: Request, res: Response) => {
     await pomodoroService.resetToday(req.user!._id);
-    res.json({ success: true, message: "Today's Pomodoro queue has been reset" });
+    return sendResponse(res, 200, true, "Today's Pomodoro queue has been reset");
   }),
 };
 

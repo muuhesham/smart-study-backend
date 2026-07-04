@@ -9,3 +9,6 @@ dist/
 
 # IDEs
 .vscode/
+
+# Logs
+logs/

@@ -26,5 +26,6 @@ const SubjectSchema: Schema = new Schema<ISubject>(
 );
 
 SubjectSchema.index({ userId: 1 });
+SubjectSchema.index({ userId: 1, examDate: 1 });
 
 export default mongoose.model<ISubject>('Subject', SubjectSchema);

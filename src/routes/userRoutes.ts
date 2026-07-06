@@ -8,14 +8,14 @@ import userValidators from "../validations/userValidators.js";
 const router = Router();
 
 router.get(
-  "/",
+  "/me",
   apiLimiter,
   authMiddleware,
-  userController.userProfile,
+  userController.getUserProfile,
 );
 
 router.put(
-  "/",
+  "/update-name",
   profileLimiter,
   authMiddleware,
   validate(userValidators.updateUsername),
@@ -28,6 +28,21 @@ router.put(
   authMiddleware,
   validate(userValidators.changePassword),
   userController.changePassword,
+);
+
+router.put(
+  "/update-email",
+  profileLimiter,
+  authMiddleware,
+  userController.changeEmail,
+);
+
+router.put(
+  "/update-daily-hours",
+  profileLimiter,
+  authMiddleware,
+  validate(userValidators.changeDailyHours),
+  userController.changeDailyHours,
 );
 
 router.delete(

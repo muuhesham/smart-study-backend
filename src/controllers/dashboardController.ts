@@ -6,7 +6,7 @@ import { sendResponse } from "../utils/sendResponse.js";
 
 const dashboardController = {
   getSummary: asyncHandler(async (req: Request, res: Response) => {
-    const summary = await dashboardService.getSummary(req.user!._id);
+    const summary = await dashboardService.getSummary(req.user._id);
     return sendResponse(res, 200, true, undefined, summary);
   }),
 
@@ -14,7 +14,7 @@ const dashboardController = {
     const rawWithinDays = Number(req.query.withinDays);
     const withinDays = Number.isFinite(rawWithinDays) && rawWithinDays > 0 ? rawWithinDays : 3;
 
-    const reminders = await reminderService.getReminders(req.user!._id, withinDays);
+    const reminders = await reminderService.getReminders(req.user._id, withinDays);
     return sendResponse(res, 200, true, undefined, reminders);
   }),
 };

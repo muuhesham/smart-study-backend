@@ -14,7 +14,7 @@ router.post(
   subjectController.addSubject,
 );
 router.delete("/:id", authMiddleware, subjectController.deleteSubject);
-router.put(
+router.patch(
   "/:id",
   authMiddleware,
   validate(subjectValidators.updateSubject),

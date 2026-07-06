@@ -30,5 +30,6 @@ const StudyPlanSchema: Schema = new Schema<IStudyPlan>(
 
 StudyPlanSchema.index({ userId: 1, subjectId: 1, day: 1, time: 1 }, { unique: true });
 StudyPlanSchema.index({ userId: 1, day: 1 });
+StudyPlanSchema.index({ userId: 1, status: 1});
 
 export default mongoose.model<IStudyPlan>('StudyPlan', StudyPlanSchema);

@@ -1,6 +1,7 @@
 import Subject from "../models/Subject.js";
 import StudyPlan from "../models/StudyPlan.js";
 import { formatDateISO, startOfDay } from "../utils/date.js";
+import { studyPlanStatus } from "../constants/enums/studyPlanStatus.js";
 
 interface ExamReminder {
   type: "exam";
@@ -53,7 +54,7 @@ const reminderService = {
       };
     });
 
-    const todaysPlan = await StudyPlan.find({ userId, day: todayKey, status: "pending" })
+    const todaysPlan = await StudyPlan.find({ userId, day: todayKey, status: studyPlanStatus.PENDING })
       .populate("subjectId", "name")
       .sort({ time: 1 });
 

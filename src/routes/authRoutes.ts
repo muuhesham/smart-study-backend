@@ -19,4 +19,17 @@ router.post(
   authController.login,
 );
 
+router.post(
+  "/forgot-password",
+  authLimiter,
+  validate(authValidators.forgotPassword),
+  authController.resetPassword
+);
+
+router.post(
+  '/logout',
+  authLimiter,
+  authController.logout
+)
+
 export default router;

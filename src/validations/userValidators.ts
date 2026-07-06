@@ -8,8 +8,7 @@ const userValidators = {
         .min(2, { message: "Name must be at least 2 characters long" })
         .max(50, { message: "Name must be at most 50 characters long" })
         .regex(/^[a-zA-Z0-9_ ]+$/, {
-          message:
-            "Name can only contain letters, numbers, and underscores",
+          message: "Name can only contain letters, numbers, and underscores",
         })
         .toLowerCase()
         .trim(),
@@ -31,6 +30,26 @@ const userValidators = {
         })
         .min(6, { message: "New password must be at least 6 characters" })
         .max(50, { message: "Password must be at most 50 characters" }),
+    }),
+  }),
+
+  changeDailyHours: z.object({
+    body: z.object({
+      newDailyHours: z
+        .number({
+          message: "Daily Study Hours is required",
+        })
+        .min(1, { message: "Study Hours must be at least 1h" })
+        .max(24, { message: "Study hours be must at most 24h" }),
+    }),
+  }),
+
+  changeEmail: z.object({
+    body: z.object({
+      newEmail: z
+        .email({ message: "Email address is required" })
+        .toLowerCase()
+        .trim(),
     }),
   }),
 };

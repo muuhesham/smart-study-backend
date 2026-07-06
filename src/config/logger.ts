@@ -10,7 +10,7 @@ if(!fs.existsSync(logDirectory)) {
     fs.mkdirSync(logDirectory);
 }
 
-morgan.token("user_ID", (req) => {
+morgan.token("user-id", (req) => {
     return req.user ? req.user._id : "Guest";
 });
 

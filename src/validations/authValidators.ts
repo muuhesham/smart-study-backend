@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 const authValidators = {
   register: z.object({
@@ -12,7 +12,7 @@ const authValidators = {
         })
         .toLowerCase()
         .trim(),
-      email: z.string().email({ message: "Invalid email address" }).toLowerCase().trim(),
+      email: z.email({ message: "Invalid email address" }).toLowerCase().trim(),
       password: z
         .string({ message: "Password is required" })
         .regex(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9\_\#\@\$\-]+$/, {
@@ -22,20 +22,34 @@ const authValidators = {
         .min(6, { message: "Password must be at least 6 characters long" })
         .max(50, { message: "Password must be at most 50 characters long" }),
       dailyStudyHours: z
-        .number({
-          message: "Study hours is required",
-        })
-        .min(1, { message: "Hours must be at least 1h" })
-        .max(24, { message: "Study hours be must at most 24h" }),
+        .number()
+        .min(1, { message: "Study Hours must be at least 1h" })
+        .max(24, { message: "Study hours be must at most 24h" })
+        .optional(),
     }),
   }),
 
   login: z.object({
     body: z.object({
-      email: z.string().email({ message: "Invalid email address" }).toLowerCase(),
+      email: z.email({ message: "Invalid email address" }).toLowerCase(),
       password: z
         .string({ message: "Password is required" })
         .min(6, { message: "Password must be at least 6 characters long" }),
+    }),
+  }),
+
+  forgotPassword: z.object({
+    body: z.object({
+      name: z.string({ message: "Name is required" }).toLowerCase().trim(),
+      email: z.email({ message: "Invalid email address" }).toLowerCase(),
+      newPassword: z
+        .string({ message: "Password is required" })
+        .regex(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9\_\#\@\$\-]+$/, {
+          message:
+            "Password must contain at least 1 letter captial & 1 letter small",
+        })
+        .min(6, { message: "Password must be at least 6 characters long" })
+        .max(50, { message: "Password must be at most 50 characters long" }),
     }),
   }),
 };

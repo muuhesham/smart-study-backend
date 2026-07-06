@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "seed": "node src/seeders/seed.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

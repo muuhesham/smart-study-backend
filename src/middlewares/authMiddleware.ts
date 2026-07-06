@@ -19,7 +19,10 @@ export const authMiddleware = (
 
   const token = authHeader.split(" ")[1];
   try {
-    const decodedToken = verifyToken(token!, JWT_KEY!) as DataToken;
+    const decodedToken = verifyToken(token, JWT_KEY) as DataToken;
+    if(!decodedToken){
+      return next(new AppError("User not found or invalid token data", 401));
+    }
     req.user = decodedToken;
     next();
   } catch (err) {

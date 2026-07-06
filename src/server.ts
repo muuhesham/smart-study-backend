@@ -1,9 +1,9 @@
-import connectDB from './config/db.js';
+import db from './config/db.js';
 import { PORT } from './config/env.js';
 import app from './app.js';
 
 try {
-    await connectDB();
+    await db.connectDB();
 
     app.listen(PORT, () => {
         console.log(`✅ SERVER RUNNING ON http://localhost:${PORT}`);

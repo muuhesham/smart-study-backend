@@ -1,5 +1,6 @@
 import Subject, { ISubject } from "../models/Subject.js";
 import { AppError } from "../utils/AppError.js";
+import { SubjectResource } from "../resources/subjectResourc.js";
 
 interface SubjectInput {
   name: string;
@@ -12,10 +13,23 @@ interface SubjectInput {
 
 const subjectService = {
   getSubjectsByUser: async (userId: string): Promise<ISubject[]> => {
-    return await Subject.find({ userId }).sort({ examDate: 1 });
+    return await Subject.find({ userId })
+      .select("-createdAt -updatedAt -__v")
+      .sort({ examDate: 1 });
   },
 
   addSubject: async (userId: string, data: SubjectInput): Promise<ISubject> => {
+    const isSubjectExist = await Subject.findOne({
+      userId,
+      name: data.name.trim(),
+    });
+
+    if (isSubjectExist) {
+      throw new AppError(
+        `Subject ${data.name} is already added to your profile`,
+        400,
+      );
+    }
     const newSubject = new Subject({
       userId,
       ...data,
@@ -24,14 +38,17 @@ const subjectService = {
   },
 
   deleteSubject: async (subjectId: string, userId: string): Promise<void> => {
-    const subject = await Subject.findById(subjectId);
-    if (!subject) {
-      throw new AppError("Subject not found", 404);
+    if (!subjectId) {
+      throw new AppError("Subject ID is required", 400);
     }
-    if (subject.userId.toString() !== userId) {
-      throw new AppError("User not authorized to delete this subject", 403);
+    const deletedSubject = await Subject.findByIdAndDelete({_id: subjectId, userId});
+    if (!deletedSubject) {
+            throw new AppError(
+              "User not authorized to delete this subject",
+              403,
+            );
+
     }
-    await Subject.findByIdAndDelete(subjectId);
   },
 
   updateSubject: async (
@@ -39,22 +56,21 @@ const subjectService = {
     userId: string,
     data: Partial<SubjectInput>,
   ): Promise<ISubject> => {
-    const subject = await Subject.findById(subjectId);
-    if (!subject) {
-      throw new AppError("Subject not found", 404);
+    if (!subjectId) {
+      throw new AppError("Subject ID is required", 400);
     }
-    if (subject.userId.toString() !== userId) {
-      throw new AppError("User not authorized to update this subject", 403);
+    const updatedSubject = await Subject.findOneAndUpdate(
+      { _id: subjectId, userId },
+      { $set: data },
+      { new: true, runValidators: true },
+    );
+    if (!updatedSubject) {
+      throw new AppError(
+        "Subject not found or user not authorized to update this subject",
+        404,
+      );
     }
-
-    if (data.name !== undefined) subject.name = data.name;
-    if (data.difficulty !== undefined) subject.difficulty = data.difficulty;
-    if (data.examDate !== undefined) subject.examDate = data.examDate;
-    if (data.icon !== undefined) subject.icon = data.icon;
-    if (data.targetHoursPerWeek !== undefined) subject.targetHoursPerWeek = data.targetHoursPerWeek;
-    if (data.topics !== undefined) subject.topics = data.topics;
-
-    return await subject.save();
+    return updatedSubject;
   },
 };
 

@@ -2,8 +2,15 @@ import StudyPlan, { IStudyPlan, StudyPlanStatus } from "../models/StudyPlan.js";
 import Subject, { ISubject } from "../models/Subject.js";
 import User from "../models/User.js";
 import { AppError } from "../utils/AppError.js";
-import { addDays, daysBetween, formatDateISO, startOfDay } from "../utils/date.js";
+import {
+  addDays,
+  daysBetween,
+  formatDateISO,
+  startOfDay,
+} from "../utils/date.js";
 import progressService from "./progressService.js";
+import { studyPlanStatus } from "../constants/enums/studyPlanStatus.js";
+import { dashboardCache } from "../utils/cache.js";
 
 const PLAN_LENGTH_DAYS = 7;
 
@@ -21,17 +28,23 @@ interface PlanEntryDraft {
   status: StudyPlanStatus;
 }
 
-
-function scoreSubjectForDay(subject: ISubject, studyDay: Date): { priority: number; daysUntilExam: number } {
+function scoreSubjectForDay(
+  subject: ISubject,
+  studyDay: Date,
+): { priority: number; daysUntilExam: number } {
   const daysUntilExam = Math.max(0, daysBetween(studyDay, subject.examDate));
   const urgency = 100 / (daysUntilExam + 1);
   const priority = subject.difficulty * 3 + urgency;
   return { priority, daysUntilExam };
 }
 
-function hoursForPriority(daysUntilExam: number, priority: number, remainingHours: number): number {
+function hoursForPriority(
+  daysUntilExam: number,
+  priority: number,
+  remainingHours: number,
+): number {
   if (daysUntilExam <= 1) {
-    // Exam is today/tomorrow relative to this study day 
+    // Exam is today/tomorrow relative to this study day
     return Math.min(3, remainingHours);
   }
   if (daysUntilExam <= 3 || priority >= 18) {
@@ -40,8 +53,11 @@ function hoursForPriority(daysUntilExam: number, priority: number, remainingHour
   return Math.min(1, remainingHours);
 }
 
-// Picks the next topic for a subject, cycling through its topic list 
-function nextTopic(subject: ISubject, topicCursor: Map<string, number>): string {
+// Picks the next topic for a subject, cycling through its topic list
+function nextTopic(
+  subject: ISubject,
+  topicCursor: Map<string, number>,
+): string {
   const key = String(subject._id);
   const pool = subject.topics.length > 0 ? subject.topics : FALLBACK_TOPICS;
   const index = topicCursor.get(key) ?? 0;
@@ -51,7 +67,10 @@ function nextTopic(subject: ISubject, topicCursor: Map<string, number>): string 
 
 const planService = {
   getPlanByUser: async (userId: string): Promise<IStudyPlan[]> => {
-    return await StudyPlan.find({ userId }).populate("subjectId", "name icon").sort({ day: 1, time: 1 });
+    return await StudyPlan.find({ userId })
+      .select("-createdAt -updatedAt -__v")
+      .populate("subjectId", "name icon")
+      .sort({ day: 1, time: 1 });
   },
 
   // Plan Generator Function
@@ -76,13 +95,18 @@ const planService = {
       const studyDay = addDays(startDate, offset);
       const dayKey = formatDateISO(studyDay);
 
-      // Only subjects whose exam hasn't happened yet 
+      // Only subjects whose exam hasn't happened yet
       // (relative to this study day) are worth studying for.
-      const activeSubjects = allSubjects.filter((s) => daysBetween(studyDay, s.examDate) >= 0);
+      const activeSubjects = allSubjects.filter(
+        (s) => daysBetween(studyDay, s.examDate) >= 0,
+      );
       if (activeSubjects.length === 0) continue;
 
       const scored = activeSubjects
-        .map((subject) => ({ subject, ...scoreSubjectForDay(subject, studyDay) }))
+        .map((subject) => ({
+          subject,
+          ...scoreSubjectForDay(subject, studyDay),
+        }))
         .sort((a, b) => b.priority - a.priority);
 
       let remainingHours = dailyHours;
@@ -90,7 +114,11 @@ const planService = {
       for (const item of scored) {
         if (remainingHours <= 0) break;
 
-        const hours = hoursForPriority(item.daysUntilExam, item.priority, remainingHours);
+        const hours = hoursForPriority(
+          item.daysUntilExam,
+          item.priority,
+          remainingHours,
+        );
         if (hours > 0) {
           const time = TIME_SLOTS[Math.min(slotIndex, TIME_SLOTS.length - 1)]!;
           planEntries.push({
@@ -118,8 +146,10 @@ const planService = {
     // Replace any previously generated plan for this user with the new one.
     await StudyPlan.deleteMany({ userId });
     await StudyPlan.insertMany(planEntries);
-
-    return await StudyPlan.find({ userId }).populate("subjectId", "name icon").sort({ day: 1, time: 1 });
+    dashboardCache.delete(userId);
+    return await StudyPlan.find({ userId })
+      .populate("subjectId", "name icon")
+      .sort({ day: 1, time: 1 });
   },
 
   updateStatus: async (
@@ -127,26 +157,43 @@ const planService = {
     userId: string,
     status: StudyPlanStatus,
   ): Promise<IStudyPlan> => {
-    const plan = await StudyPlan.findById(planId);
+    if (!planId) {
+      throw new AppError("Plan ID is required", 400);
+    }
+
+    const plan = await StudyPlan.findOneAndUpdate(
+      { _id: planId, userId, status: { $ne: status } },
+      { $set: { status } },
+      { new: false },
+    );
+
     if (!plan) {
-      throw new AppError("Plan task not found", 404);
-    }
-    if (plan.userId.toString() !== userId) {
-      throw new AppError("User not authorized to update this task", 403);
-    }
-    if (plan.status === status) {
-      return plan;
+      const currentPlan = await StudyPlan.findOne({ _id: planId, userId });
+      if (!currentPlan)
+        throw new AppError("Plan task not found or unauthorized", 404);
+      return currentPlan;
     }
 
     const hours = plan.durationMinutes / 60;
-    if (status === "done") {
-      await progressService.adjustStudyHours(userId, String(plan.subjectId), plan.day, hours);
+    if (status === studyPlanStatus.DONE) {
+      await progressService.adjustStudyHours(
+        userId,
+        String(plan.subjectId),
+        plan.day,
+        hours,
+      );
     } else {
-      await progressService.adjustStudyHours(userId, String(plan.subjectId), plan.day, -hours);
+      await progressService.adjustStudyHours(
+        userId,
+        String(plan.subjectId),
+        plan.day,
+        -hours,
+      );
     }
 
     plan.status = status;
-    return await plan.save();
+    dashboardCache.delete(userId);
+    return plan;
   },
 };
 

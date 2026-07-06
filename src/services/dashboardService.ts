@@ -2,12 +2,18 @@ import Subject from "../models/Subject.js";
 import StudyPlan from "../models/StudyPlan.js";
 import Progress from "../models/Progress.js";
 import { formatDateISO, getWeekRange, weekdayShortLabel, addDays } from "../utils/date.js";
+import { studyPlanStatus } from "../constants/enums/studyPlanStatus.js";
+import { dashboardCache } from "../utils/cache.js";
 
 const WEEKLY_POMODORO_GOAL_PER_DAY = 8;
 
 const dashboardService = {
  
   getSummary: async (userId: string) => {
+    if(dashboardCache.has(userId)){
+      return dashboardCache.get(userId);
+    }
+    
     const today = new Date();
     const todayKey = formatDateISO(today);
     const { start: weekStart, end: weekEnd } = getWeekRange(today);
@@ -47,12 +53,13 @@ const dashboardService = {
       thisWeekPlanTasks.length === 0
         ? 0
         : Math.round(
-            (thisWeekPlanTasks.filter((t) => t.status === "done").length / thisWeekPlanTasks.length) * 100,
+            (thisWeekPlanTasks.filter((t) => t.status === studyPlanStatus.DONE).length / thisWeekPlanTasks.length) * 100,
           );
 
     // Pomodoros today (+ goal)
+    const todaysProgress = thisWeekProgress.filter(p => p.day === todayKey);
     const pomodorosToday = sum(
-      (await Progress.find({ userId, day: todayKey })).map((p) => p.pomodorosCompleted),
+      (todaysProgress.map(p => p.pomodorosCompleted)) || 0,
     );
 
     // Weekly study hours chart (Mon..Sun) 
@@ -73,7 +80,7 @@ const dashboardService = {
       const key = task.subjectId.toString();
       const entry = bySubject.get(key) ?? { name: "", total: 0, done: 0 };
       entry.total += 1;
-      if (task.status === "done") entry.done += 1;
+      if (task.status === studyPlanStatus.DONE) entry.done += 1;
       bySubject.set(key, entry);
     }
     for (const subject of subjects) {
@@ -87,8 +94,7 @@ const dashboardService = {
       const percent = !entry || entry.total === 0 ? 0 : Math.round((entry.done / entry.total) * 100);
       return { subjectId: s._id, name: s.name, percent };
     });
-
-    return {
+    const finalResult = {
       studyHoursThisWeek,
       studyHoursDeltaVsLastWeek,
       subjectsCount: subjects.length,
@@ -101,7 +107,11 @@ const dashboardService = {
       todaysPlan,
       todaysSessionsCount: todaysPlan.length,
     };
-  },
+
+    dashboardCache.set(userId, finalResult);
+
+    return finalResult;
+  }
 };
 
 function sum(values: number[]): number {

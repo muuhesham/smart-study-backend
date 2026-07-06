@@ -36,7 +36,7 @@ const authService = {
   },
 
   login: async ({ email, password }: { email: string; password: string }) => {
-    const user = await UserModel.findOne({ email }).select('+password');
+    const user = await UserModel.findOne({ email }).select("+password");
     if (!user) {
       throw new AppError("Invalid email or password", 401);
     }
@@ -50,6 +50,24 @@ const authService = {
     const formattedUser = new UserResource(user);
 
     return { token, user: formattedUser };
+  },
+
+  resetPassword: async ({
+    name,
+    email,
+    newPassword,
+  }: {
+    name: string
+    email: string;
+    newPassword: string;
+  }) => {
+    const user = await UserModel.findOne({ email, name });
+    if (!user) {
+      throw new AppError("User Data not found", 404);
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await UserModel.updateOne({ email, name }, {password: hashedPassword});
   },
 };
 

@@ -1,6 +1,14 @@
-# SmartStudy Backend
+# Smart Study Planner Backend
+
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-blue?style=for-the-badge)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
 This is the backend service for the SmartStudy application, built with Node.js, Express, TypeScript, and MongoDB.
+
 
 ## Prerequisites
 
@@ -29,6 +37,7 @@ This is the backend service for the SmartStudy application, built with Node.js, 
      - `PORT`: The port for the server (e.g., `8000`)
      - `DB_URL`: Your MongoDB connection string (e.g., `mongodb://localhost:27017/smart-study-db`)
      - `JWT_KEY`: A secure secret key for JSON Web Tokens
+     - `FRONT_URL`: The URL of your frontend application (e.g., `http://localhost:5173`)
 
 4. **Run the server:**
    - To run in development mode (with auto-reload):
@@ -41,13 +50,14 @@ This is the backend service for the SmartStudy application, built with Node.js, 
      npm start
      ```
 
-## Configuration Summary
+## Configuration Enviorment
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
 | `PORT` | Server port | `8000` |
 | `DB_URL` | MongoDB Connection String | `mongodb://localhost:27017/smart-study` |
 | `JWT_KEY` | Secret for token generation | `your-secure-random-string` |
+| `FRONT_URL` | Frontend application URL | `http://localhost:5173` |
 
 ## Database Schema
 
@@ -61,60 +71,50 @@ This is the backend service for the SmartStudy application, built with Node.js, 
 
 All endpoints below (except `/api/register` and `/api/login`) require an `Authorization: Bearer <token>` header.
 
+## API Documentation
+
+You can explore and test the API endpoints using the official Postman collection:
+👉 [Smart Study Planner Postman Collection](https://www.postman.com/crimson-desert-397910/smart-study-planner/overview?sideView=agentMode)
+
 ## API Endpoints
+
 
 ### Auth
 - `POST /api/register` — `{ name, email, password, dailyStudyHours }`
 - `POST /api/login` — `{ email, password }`
+- `POST /api/forgot-password` — `{ name, email, newPassword }`
+- `POST /api/logout` — Logs out the user.
 
 ### Profile
-- `GET /api/profile`
-- `PUT /api/profile` — `{ name }`
-- `PUT /api/change-password` — `{ currentPassword, newPassword }`
-- `DELETE /api/profile`
+- `GET /api/profile/me` — Returns current user profile.
+- `PUT /api/profile/update-name` — `{ name }`
+- `PUT /api/profile/change-password` — `{ currentPassword, newPassword }`
+- `PUT /api/profile/update-email` — `{ newEmail }`
+- `PUT /api/profile/update-daily-hours` — `{ newDailyHours }`
+- `DELETE /api/profile` — Deletes the user account.
 
 ### Subjects
-- `GET /api/subjects`
-- `POST /api/subjects` — `{ name, difficulty (1-5), examDate, icon?, targetHoursPerWeek?, topics? }`
-- `PUT /api/subjects/:id` — any of `{ name, difficulty, examDate, icon, targetHoursPerWeek, topics }`
-- `DELETE /api/subjects/:id`
+- `GET /api/subject` — List all subjects.
+- `POST /api/subject` — `{ name, difficulty (1-5), examDate, icon?, targetHoursPerHweek?, topics? }`
+- `PATCH /api/subject/:id` — Update any of `{ name, difficulty, examDate, icon, targetHoursPerWeek, topics }`
+- `DELETE /api/subject/:id` — Remove a subject.
 
 ### Study Plan
-- `GET /api/plan` — returns each session with `day`, `time`, `subjectId` (populated with `name`/`icon`), `topic`, `durationMinutes`, `status`
-- `POST /api/plan/generate` — generates a plan starting **tomorrow** and covering the next 7 calendar days.
-  Each day's sessions are recomputed per subject based on `difficulty` and how many days remain until that
-  subject's `examDate` *as of that specific day* — urgency increases the closer the exam gets, and a subject
-  stops being scheduled entirely once its exam date has passed. Each session gets a concrete `time` slot and
-  a `topic` (cycled from the subject's `topics` list, or a generic fallback).
-- `PATCH /api/plan/:id/status` — `{ status: "pending" | "done" }`. Marking a task "done" automatically logs
-  its duration as study progress (kept in sync with the dashboard); reverting to "pending" reverses it.
+- `GET /api/plan` — Returns current study plan.
+- `POST /api/plan/generate` — Generates a plan starting tomorrow and covering the next 7 days. Urgency increases based on proximity to `examDate`.
+- `PATCH /api/plan/:id/status` — `{ status: "pending" | "done" }`. Updating to "done" logs progress automatically.
 
 ### Dashboard
-- `GET /api/dashboard` — all stats shown on the dashboard screen:
-  `studyHoursThisWeek`, `studyHoursDeltaVsLastWeek`, `subjectsCount`, `examsThisWeek`, `tasksCompletedPercent`,
-  `pomodorosToday`, `pomodoroGoalToday`, `weeklyStudyHours` (Mon–Sun chart data), `subjectProgress`
-  (per-subject completion %), `todaysPlan`.
-
-### Reminders
-- `GET /api/reminders?withinDays=3` — upcoming exams within `withinDays` days, and today's planned study
-  tasks that haven't been logged as progress yet.
+- `GET /api/dashboard` — Returns all stats: study hours (this week/delta), subjects count, exams this week, task completion %, and today's plan.
+- `GET /api/reminders` — Upcoming exams and pending tasks.
 
 ### Progress
-- `GET /api/progress`
-- `POST /api/progress` — `{ subjectId, day, studyHours, notes? }` (manual logging)
+- `GET /api/progress` — Returns study history.
+- `POST /api/progress` — `{ subjectId, day, studyHours, notes? }` for manual logging.
 
 ### Pomodoro
-- `GET /api/pomodoro/today` — today's Pomodoro session queue, generated automatically from today's Study
-  Plan tasks (each task's duration split into 25-minute work blocks with short/long breaks between them,
-  matching the classic Pomodoro cadence). Returns `sessions[]`, `currentSessionIndex`,
-  `completedWorkSessions`, `totalWorkSessions`, `totalMinutesToday` — everything needed for the "Session 4
-  of 8" / "Today's sessions" / "Total today" UI.
-- `POST /api/pomodoro/sessions/:id/complete` — marks a session completed; completing a "work" block also
-  logs its minutes + a Pomodoro count to Progress automatically.
-- `POST /api/pomodoro/today/reset` — clears today's not-yet-completed queue so it's rebuilt from the latest
-  Study Plan (useful after regenerating the plan).
+- `GET /api/pomodoro/today` — Generates a queue of Pomodoro sessions based on today's Study Plan.
+- `POST /api/pomodoro/sessions/:id/complete` — Marks session as completed. Work sessions update Progress.
+- `POST /api/pomodoro/today/reset` — Resets today's queue.
 
-This is the single Pomodoro implementation in the backend — the session queue above is the only place
-Pomodoro sessions are generated, tracked, and completed; there is no separate/duplicate manual logging
-endpoint under `/progress`.
 

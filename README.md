@@ -9,12 +9,13 @@
 
 This is the backend service for the SmartStudy application, built with Node.js, Express, TypeScript, and MongoDB.
 
-
 ## Prerequisites
 
 - Node.js (v20 or higher recommended)
-- MongoDB (local installation or connection string)
 - npm or yarn
+- Docker & Docker Compose (optional, for containerized execution)
+
+---
 
 ## Local Setup (No Docker)
 
@@ -35,9 +36,9 @@ This is the backend service for the SmartStudy application, built with Node.js, 
      ```
    - Open the `.env` file and set the following variables:
      - `PORT`: The port for the server (e.g., `8000`)
-     - `DB_URL`: Your MongoDB connection string (e.g., `mongodb://localhost:27017/smart-study-db`)
+     - `DB_URL`: Pre-configured to the online MongoDB Atlas connection string
      - `JWT_KEY`: A secure secret key for JSON Web Tokens
-     - `FRONT_URL`: The URL of your frontend application (e.g., `http://localhost:5173`)
+     - `FRONTEND_URL`: The URL of your frontend application (e.g., `http://localhost:5173`)
 
 4. **Run the server:**
    - To run in development mode (with auto-reload):
@@ -50,14 +51,50 @@ This is the backend service for the SmartStudy application, built with Node.js, 
      npm start
      ```
 
-## Configuration Enviorment
+---
+
+## Setup with Docker
+
+You can easily run the application containerized using Docker and Docker Compose. This ensures a consistent environment and simplifies deployment.
+
+### 1. Prerequisites
+- Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) on your system.
+
+### 2. Configure Environment Variables
+- Copy the example environment file:
+  ```bash
+  cp .env.example .env
+  ```
+- Make sure `DB_URL` is set to the pre-configured online MongoDB Atlas cloud URL (from `.env.example`), or your custom connection string.
+
+### 3. Build and Run Containers
+- Start the backend container in detached (background) mode:
+  ```bash
+  docker-compose up --build -d
+  ```
+
+### 4. Manage the Containers
+- **Check logs:**
+  ```bash
+  docker-compose logs -f
+  ```
+- **Stop the container:**
+  ```bash
+  docker-compose down
+  ```
+
+---
+
+## Configuration Environment
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
 | `PORT` | Server port | `8000` |
-| `DB_URL` | MongoDB Connection String | `mongodb://localhost:27017/smart-study` |
+| `DB_URL` | MongoDB Connection String (Online Atlas or Local) | `mongodb+srv://muhammedhesham2233_db_user:iEtx3amLZxet1QVw@cluster0.1cxnize.mongodb.net/` |
 | `JWT_KEY` | Secret for token generation | `your-secure-random-string` |
-| `FRONT_URL` | Frontend application URL | `http://localhost:5173` |
+| `FRONTEND_URL` | Frontend application URL | `http://localhost:5173` |
+
+---
 
 ## Database Schema
 
@@ -71,10 +108,16 @@ This is the backend service for the SmartStudy application, built with Node.js, 
 
 All endpoints below (except `/api/register` and `/api/login`) require an `Authorization: Bearer <token>` header.
 
+---
+
 ## API Documentation
+
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
 
 You can explore and test the API endpoints using the official Postman collection:
 👉 [Smart Study Planner Postman Collection](https://www.postman.com/crimson-desert-397910/smart-study-planner/overview?sideView=agentMode)
+
+---
 
 ## API Endpoints
 
@@ -116,5 +159,3 @@ You can explore and test the API endpoints using the official Postman collection
 - `GET /api/pomodoro/today` — Generates a queue of Pomodoro sessions based on today's Study Plan.
 - `POST /api/pomodoro/sessions/:id/complete` — Marks session as completed. Work sessions update Progress.
 - `POST /api/pomodoro/today/reset` — Resets today's queue.
-
-

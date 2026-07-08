@@ -36,7 +36,7 @@ This is the backend service for the SmartStudy application, built with Node.js, 
      ```
    - Open the `.env` file and set the following variables:
      - `PORT`: The port for the server (e.g., `8000`)
-     - `DB_URL`: Pre-configured to the online MongoDB Atlas connection string
+     - `DB_URL`: MongoDB Atlas connection string
      - `JWT_KEY`: A secure secret key for JSON Web Tokens
      - `FRONTEND_URL`: The URL of your frontend application (e.g., `http://localhost:5173`)
 
@@ -90,7 +90,7 @@ You can easily run the application containerized using Docker and Docker Compose
 | Variable | Description | Example |
 | :--- | :--- | :--- |
 | `PORT` | Server port | `8000` |
-| `DB_URL` | MongoDB Connection String (Online Atlas or Local) | `mongodb+srv://muhammedhesham2233_db_user:iEtx3amLZxet1QVw@cluster0.1cxnize.mongodb.net/` |
+| `DB_URL` | MongoDB Connection String (Online Atlas or Local) | `mongodb+srv://username:password@cluster0.1cxnize.mongodb.net/` |
 | `JWT_KEY` | Secret for token generation | `your-secure-random-string` |
 | `FRONTEND_URL` | Frontend application URL | `http://localhost:5173` |
 

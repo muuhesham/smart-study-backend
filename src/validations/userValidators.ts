@@ -47,6 +47,7 @@ const userValidators = {
   changeEmail: z.object({
     body: z.object({
       newEmail: z
+        .string()
         .email({ message: "Email address is required" })
         .toLowerCase()
         .trim(),

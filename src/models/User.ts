@@ -5,6 +5,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   dailyStudyHours: number;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,10 +31,18 @@ const userSchema = new Schema<IUser>(
       type: Number,
       default: 0,
     },
+    resetPasswordOtp: {
+      type: String,
+      select: false,
+    },
+    resetPasswordOtpExpiry: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const User = mongoose.model<IUser>("User", userSchema);

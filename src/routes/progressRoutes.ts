@@ -6,10 +6,11 @@ import progressValidators from "../validations/progressValidators.js";
 
 const router = Router();
 
-router.get("/", authMiddleware, progressController.getProgress);
+router.use(authMiddleware);
+
+router.get("/", progressController.getProgress);
 router.post(
   "/",
-  authMiddleware,
   validate(progressValidators.updateProgress),
   progressController.updateProgress,
 );

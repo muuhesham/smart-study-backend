@@ -6,11 +6,12 @@ import planValidators from "../validations/planValidators.js";
 
 const router = Router();
 
-router.get("/", authMiddleware, planController.getPlan);
-router.post("/generate", authMiddleware, planController.generatePlan);
+router.use(authMiddleware);
+
+router.get("/", planController.getPlan);
+router.post("/generate", planController.generatePlan);
 router.patch(
   "/:id/status",
-  authMiddleware,
   validate(planValidators.updateStatus),
   planController.updateStatus,
 );

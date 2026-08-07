@@ -27,10 +27,16 @@ const authController = {
     });
   }),
 
-  resetPassword: asyncHandler(async (req: Request, res: Response) => {
-    const { name, email, newPassword } = req.body;
-    await authService.resetPassword({ name, email, newPassword });
-    return sendResponse(res, 200, true, "Password Reset Successfully");
+  forgotPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+    await authService.forgotPassword({ email });
+    return sendResponse(res, 200, true, "OTP sent to your email");
+  }),
+
+  verifyPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email, otp, newPassword } = req.body;
+    await authService.verifyPassword({ email, otp, newPassword });
+    return sendResponse(res, 200, true, "Password updated successfully");
   }),
 
   logout: asyncHandler(async (_req: Request, res: Response) => {

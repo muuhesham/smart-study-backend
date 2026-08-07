@@ -13,9 +13,13 @@ interface SubjectInput {
 
 const subjectService = {
   getSubjectsByUser: async (userId: string): Promise<ISubject[]> => {
-    return await Subject.find({ userId })
+    const subjects = await Subject.find({ userId })
       .select("-createdAt -updatedAt -__v")
       .sort({ examDate: 1 });
+
+    return subjects.map(
+      (subject) => new SubjectResource(subject) as unknown as ISubject,
+    );
   },
 
   addSubject: async (userId: string, data: SubjectInput): Promise<ISubject> => {
@@ -30,24 +34,28 @@ const subjectService = {
         400,
       );
     }
+
     const newSubject = new Subject({
       userId,
       ...data,
     });
-    return await newSubject.save();
+
+    const savedSubject = await newSubject.save();
+    return new SubjectResource(savedSubject as ISubject) as unknown as ISubject;
   },
 
   deleteSubject: async (subjectId: string, userId: string): Promise<void> => {
     if (!subjectId) {
       throw new AppError("Subject ID is required", 400);
     }
-    const deletedSubject = await Subject.findByIdAndDelete({_id: subjectId, userId});
-    if (!deletedSubject) {
-            throw new AppError(
-              "User not authorized to delete this subject",
-              403,
-            );
 
+    const deletedSubject = await Subject.findOneAndDelete({
+      _id: subjectId,
+      userId,
+    });
+
+    if (!deletedSubject) {
+      throw new AppError("User not authorized to delete this subject", 403);
     }
   },
 
@@ -59,18 +67,23 @@ const subjectService = {
     if (!subjectId) {
       throw new AppError("Subject ID is required", 400);
     }
+
     const updatedSubject = await Subject.findOneAndUpdate(
       { _id: subjectId, userId },
       { $set: data },
       { new: true, runValidators: true },
     );
+
     if (!updatedSubject) {
       throw new AppError(
         "Subject not found or user not authorized to update this subject",
         404,
       );
     }
-    return updatedSubject;
+
+    return new SubjectResource(
+      updatedSubject as ISubject,
+    ) as unknown as ISubject;
   },
 };
 

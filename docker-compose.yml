@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
@@ -11,3 +11,14 @@ services:
       - PORT=${PORT}
       - DB_URL=${DB_URL}
       - JWT_KEY=${JWT_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - EMAIL_HOST=mailhog
+      - EMAIL_PORT=1025
+      - EMAIL_FROM=${EMAIL_FROM:-no-reply@smartstudy.local}
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: smart_study_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"

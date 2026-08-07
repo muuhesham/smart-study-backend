@@ -12,7 +12,11 @@ const authValidators = {
         })
         .toLowerCase()
         .trim(),
-      email: z.string().email({ message: "Invalid email address" }).toLowerCase().trim(),
+      email: z
+        .string()
+        .email({ message: "Invalid email address" })
+        .toLowerCase()
+        .trim(),
       password: z
         .string({ message: "Password is required" })
         .regex(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9\_\#\@\$\-]+$/, {
@@ -31,7 +35,10 @@ const authValidators = {
 
   login: z.object({
     body: z.object({
-      email: z.string().email({ message: "Invalid email address" }).toLowerCase(),
+      email: z
+        .string()
+        .email({ message: "Invalid email address" })
+        .toLowerCase(),
       password: z
         .string({ message: "Password is required" })
         .min(6, { message: "Password must be at least 6 characters long" }),
@@ -40,8 +47,22 @@ const authValidators = {
 
   forgotPassword: z.object({
     body: z.object({
-      name: z.string({ message: "Name is required" }).toLowerCase().trim(),
-      email: z.string().email({ message: "Invalid email address" }).toLowerCase(),
+      email: z
+        .string()
+        .email({ message: "Invalid email address" })
+        .toLowerCase(),
+    }),
+  }),
+
+  verifyPassword: z.object({
+    body: z.object({
+      email: z
+        .string()
+        .email({ message: "Invalid email address" })
+        .toLowerCase(),
+      otp: z
+        .string({ message: "OTP is required" })
+        .length(6, { message: "OTP must be 6 digits" }),
       newPassword: z
         .string({ message: "Password is required" })
         .regex(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9\_\#\@\$\-]+$/, {

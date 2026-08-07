@@ -16,7 +16,7 @@ if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_FROM) {
 const transportOptions: any = {
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  secure: EMAIL_PORT === 465,
+  secure: false,
 };
 
 if (EMAIL_USER && EMAIL_PASS) {

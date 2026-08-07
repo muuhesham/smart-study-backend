@@ -12,9 +12,11 @@ services:
       - DB_URL=${DB_URL}
       - JWT_KEY=${JWT_KEY}
       - FRONTEND_URL=${FRONTEND_URL}
-      - EMAIL_HOST=mailhog
-      - EMAIL_PORT=1025
-      - EMAIL_FROM=${EMAIL_FROM:-no-reply@smartstudy.local}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
 
   mailhog:
     image: mailhog/mailhog:v1.0.1

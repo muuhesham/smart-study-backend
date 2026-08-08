@@ -19,6 +19,7 @@ app.use(cors(corsOptions));
 app.use(loggers);
 app.use(helmet());
 app.use(express.json());
+app.set("trust proxy", 1);
 
 app.use("/api", authRoutes);
 app.use("/api", dashboardRoutes);

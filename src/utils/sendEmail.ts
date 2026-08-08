@@ -1,40 +1,13 @@
-import nodemailer from "nodemailer";
-import {
-  EMAIL_HOST,
-  EMAIL_PORT,
-  EMAIL_USER,
-  EMAIL_PASS,
-  EMAIL_FROM,
-} from "../config/env.js";
+import { Resend } from "resend";
+import { EMAIL_PASS, EMAIL_FROM } from "../config/env.js";
 
-if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_FROM) {
+if (!EMAIL_PASS || !EMAIL_FROM) {
   throw new Error(
-    "Email configuration is required for sendEmail utility. Set EMAIL_HOST, EMAIL_PORT, and EMAIL_FROM in your environment.",
+    "Email configuration is required for sendEmail utility. Set EMAIL_PASS and EMAIL_FROM in your environment.",
   );
 }
 
-const transportOptions: any = {
-  host: EMAIL_HOST,
-  port: EMAIL_PORT,
-  secure: EMAIL_PORT === 465,
-};
-
-if (EMAIL_USER && EMAIL_PASS) {
-  transportOptions.auth = {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  };
-}
-
-const transporter = nodemailer.createTransport(transportOptions);
-
-transporter.verify((error) => {
-  if (error) {
-    console.error("❌ Gmail SMTP Verification Failed:", error);
-  } else {
-    console.log("✅ Gmail SMTP connected successfully!");
-  }
-});
+const resend = new Resend(EMAIL_PASS);
 
 interface SendEmailOptions {
   to: string;
@@ -49,11 +22,25 @@ export const sendEmail = async ({
   text,
   html,
 }: SendEmailOptions) => {
-  await transporter.sendMail({
-    from: EMAIL_FROM,
-    to,
-    subject,
-    text,
-    html,
-  });
+  try {
+    const emailPayload: any = {
+      from: EMAIL_FROM,
+      to,
+      subject,
+      ...(html ? { html } : { text: text || "" }),
+    };
+
+    const { data, error } = await resend.emails.send(emailPayload);
+
+    if (error) {
+      console.error("❌ Resend API Error:", error);
+      throw new Error(error.message);
+    }
+
+    console.log("✉️ Email sent via Resend API. ID:", data?.id);
+    return data;
+  } catch (error) {
+    console.error("❌ Error sending email via Resend:", error);
+    throw error;
+  }
 };

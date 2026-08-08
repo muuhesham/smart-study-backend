@@ -16,7 +16,7 @@ if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_FROM) {
 const transportOptions: any = {
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  secure: false,
+  secure: EMAIL_PORT === 465,
 };
 
 if (EMAIL_USER && EMAIL_PASS) {
@@ -27,6 +27,14 @@ if (EMAIL_USER && EMAIL_PASS) {
 }
 
 const transporter = nodemailer.createTransport(transportOptions);
+
+transporter.verify((error) => {
+  if (error) {
+    console.error("❌ Gmail SMTP Verification Failed:", error);
+  } else {
+    console.log("✅ Gmail SMTP connected successfully!");
+  }
+});
 
 interface SendEmailOptions {
   to: string;
